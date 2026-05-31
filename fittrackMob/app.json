@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "fittrackMob",
-    "slug": "fittrackMob",
+    "slug": "fittrackmob",
+    "owner": "fittrackmob",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -43,6 +44,18 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7bfbdede-cc5d-4d08-ba09-dd62d0aef602"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7bfbdede-cc5d-4d08-ba09-dd62d0aef602"
     }
   }
 }

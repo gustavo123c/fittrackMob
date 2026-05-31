@@ -1,112 +1,371 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+const COLORS = {
+  background: '#07111f',
+  card: '#0d1b31',
+  cardSoft: '#12213a',
+  primary: '#00d4a6',
+  blue: '#4c8dff',
+  orange: '#ffb84d',
+  text: '#f3f7ff',
+  muted: '#91a1bb',
+  border: '#203754',
+};
 
-export default function TabTwoScreen() {
+const workoutPlans = [
+  {
+    title: 'Peito, Ombro e Triceps',
+    level: 'Intermediario',
+    duration: '55 min',
+    exercises: ['Supino reto', 'Supino inclinado', 'Desenvolvimento', 'Triceps corda'],
+  },
+  {
+    title: 'Costas e Biceps',
+    level: 'Intermediario',
+    duration: '1h 05min',
+    exercises: ['Puxada alta', 'Remada curvada', 'Remada baixa', 'Rosca direta'],
+  },
+  {
+    title: 'Pernas Completo',
+    level: 'Avancado',
+    duration: '1h 15min',
+    exercises: ['Agachamento', 'Leg press', 'Cadeira extensora', 'Mesa flexora'],
+  },
+];
+
+const categories = ['Todos', 'Peito', 'Costas', 'Pernas', 'Bracos'];
+
+export default function ExploreScreen() {
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.container}
+      >
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.eyebrow}>Biblioteca</Text>
+            <Text style={styles.title}>Treinos</Text>
+            <Text style={styles.subtitle}>
+              Escolha um treino pronto ou use como base para sua rotina.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.searchBox}>
+          <Ionicons name="search-outline" size={21} color={COLORS.muted} />
+          <TextInput
+            placeholder="Buscar treino ou exercicio"
+            placeholderTextColor={COLORS.muted}
+            style={styles.searchInput}
+          />
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryList}
+        >
+          {categories.map((category) => {
+            const active = selectedCategory === category;
+
+            return (
+              <TouchableOpacity
+                key={category}
+                onPress={() => setSelectedCategory(category)}
+                style={[styles.categoryButton, active && styles.categoryButtonActive]}
+              >
+                <Text
+                  style={[
+                    styles.categoryText,
+                    active && styles.categoryTextActive,
+                  ]}
+                >
+                  {category}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <View style={styles.highlightCard}>
+          <View style={styles.highlightIcon}>
+            <Ionicons name="sparkles-outline" size={28} color={COLORS.primary} />
+          </View>
+
+          <View style={styles.highlightInfo}>
+            <Text style={styles.highlightTitle}>Sugestao do dia</Text>
+            <Text style={styles.highlightText}>
+              Treino superior com foco em hipertrofia e progressao de carga.
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>Planos de treino</Text>
+
+        {workoutPlans.map((plan) => (
+          <View key={plan.title} style={styles.planCard}>
+            <View style={styles.planHeader}>
+              <View style={styles.planIcon}>
+                <Ionicons name="barbell-outline" size={24} color={COLORS.primary} />
+              </View>
+
+              <View style={styles.planInfo}>
+                <Text style={styles.planTitle}>{plan.title}</Text>
+                <Text style={styles.planMeta}>
+                  {plan.level} • {plan.duration}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.exerciseList}>
+              {plan.exercises.map((exercise) => (
+                <View key={exercise} style={styles.exerciseItem}>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={18}
+                    color={COLORS.primary}
+                  />
+                  <Text style={styles.exerciseText}>{exercise}</Text>
+                </View>
+              ))}
+            </View>
+
+            <TouchableOpacity style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>Comecar este treino</Text>
+              <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        <View style={styles.tipCard}>
+          <Ionicons name="information-circle-outline" size={25} color={COLORS.orange} />
+          <View style={styles.tipInfo}>
+            <Text style={styles.tipTitle}>Dica rapida</Text>
+            <Text style={styles.tipText}>
+              Anote carga, repeticoes e descanso. Isso deixa sua evolucao muito
+              mais facil de acompanhar.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  safe: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  titleContainer: {
+  container: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 120,
+  },
+  header: {
+    marginBottom: 22,
+  },
+  eyebrow: {
+    color: COLORS.primary,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  title: {
+    color: COLORS.text,
+    fontSize: 34,
+    fontWeight: '900',
+    letterSpacing: -1,
+  },
+  subtitle: {
+    color: COLORS.muted,
+    fontSize: 15,
+    marginTop: 6,
+    lineHeight: 21,
+    maxWidth: 330,
+  },
+  searchBox: {
+    height: 54,
+    borderRadius: 18,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  searchInput: {
+    flex: 1,
+    color: COLORS.text,
+    fontSize: 15,
+  },
+  categoryList: {
+    gap: 10,
+    paddingBottom: 18,
+  },
+  categoryButton: {
+    paddingHorizontal: 16,
+    height: 42,
+    borderRadius: 999,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryButtonActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  categoryText: {
+    color: COLORS.muted,
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  categoryTextActive: {
+    color: '#06111f',
+  },
+  highlightCard: {
+    backgroundColor: COLORS.cardSoft,
+    borderRadius: 24,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    flexDirection: 'row',
+    gap: 14,
+    marginBottom: 24,
+  },
+  highlightIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: '#00d4a619',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  highlightInfo: {
+    flex: 1,
+  },
+  highlightTitle: {
+    color: COLORS.text,
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  highlightText: {
+    color: COLORS.muted,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 4,
+  },
+  sectionTitle: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontWeight: '900',
+    marginBottom: 14,
+  },
+  planCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 26,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 16,
+  },
+  planHeader: {
+    flexDirection: 'row',
+    gap: 13,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  planIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 18,
+    backgroundColor: '#00d4a619',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  planInfo: {
+    flex: 1,
+  },
+  planTitle: {
+    color: COLORS.text,
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  planMeta: {
+    color: COLORS.muted,
+    fontSize: 13,
+    marginTop: 4,
+  },
+  exerciseList: {
+    gap: 10,
+    marginBottom: 18,
+  },
+  exerciseItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  exerciseText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    height: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
+  },
+  secondaryButtonText: {
+    color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  tipCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 22,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  tipInfo: {
+    flex: 1,
+  },
+  tipTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  tipText: {
+    color: COLORS.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 4,
   },
 });
