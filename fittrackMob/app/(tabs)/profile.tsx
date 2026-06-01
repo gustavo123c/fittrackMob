@@ -12,6 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -198,6 +199,24 @@ export default function ProfileScreen() {
     );
   }
 
+  // Nova função de partilha
+  async function compartilharPerfil() {
+    try {
+      if (!profile.name) {
+        Alert.alert('Aviso', 'Preencha o seu nome antes de partilhar o seu perfil.');
+        return;
+      }
+      
+      const mensagem = `Estou a usar o FitTrack Mobile! 🏋️‍♂️\n\nSou o ${profile.name}, tenho ${profile.age} anos e o meu IMC atual é ${bmi ? formatNumber(bmi) : '--'}. A minha meta de peso é chegar aos ${profile.goalWeight} kg.\n\nJunta-te a mim na evolução do treino!`;
+      
+      await Share.share({
+        message: mensagem,
+      });
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível partilhar o perfil.');
+    }
+  }
+
   const heightMeters = parseNumber(profile.height || '0');
 
   const bmi =
@@ -314,6 +333,16 @@ export default function ProfileScreen() {
               em outro celular, ela vai preencher os próprios dados.
             </Text>
           </View>
+
+          {/* NOVO BOTÃO DE PARTILHA AQUI */}
+          <TouchableOpacity
+            activeOpacity={0.86}
+            style={styles.shareButton}
+            onPress={compartilharPerfil}
+          >
+            <Ionicons name="share-social-outline" size={18} color={COLORS.blue} />
+            <Text style={styles.shareButtonText}>Partilhar a minha evolução</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.86}
@@ -485,6 +514,22 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontSize: 13,
     flex: 1,
+  },
+  shareButton: {
+    height: 52,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: COLORS.blue,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  shareButtonText: {
+    color: COLORS.blue,
+    fontSize: 15,
+    fontWeight: '900',
   },
   dangerButton: {
     height: 52,
