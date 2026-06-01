@@ -1,96 +1,114 @@
-import React, { useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 
 const COLORS = {
   background: '#07111f',
   card: '#0d1b31',
-  cardSoft: '#12213a',
+  soft: '#12213a',
   primary: '#00d4a6',
-  blue: '#4c8dff',
   orange: '#ffb84d',
   text: '#f3f7ff',
   muted: '#91a1bb',
   border: '#203754',
 };
 
-const workoutPlans = [
+const CUSTOM_WORKOUTS_KEY = '@fittrack:custom-workouts';
+
+type WorkoutPlan = {
+  id: string;
+  title: string;
+  level: string;
+  time: string;
+  exercises: string[];
+  custom?: boolean;
+};
+
+const DEFAULT_WORKOUTS: WorkoutPlan[] = [
   {
+    id: 'default-1',
     title: 'Peito, Ombro e Triceps',
     level: 'Intermediario',
-    duration: '55 min',
-    category: 'Peito',
+    time: '58 min',
     exercises: ['Supino reto', 'Supino inclinado', 'Desenvolvimento', 'Triceps corda'],
   },
   {
+    id: 'default-2',
     title: 'Costas e Biceps',
     level: 'Intermediario',
-    duration: '1h 05min',
-    category: 'Costas',
-    exercises: ['Puxada alta', 'Remada curvada', 'Remada baixa', 'Rosca direta'],
+    time: '1h 05min',
+    exercises: ['Puxada alta', 'Remada baixa', 'Remada curvada', 'Rosca direta'],
   },
   {
+    id: 'default-3',
     title: 'Pernas Completo',
     level: 'Avancado',
-    duration: '1h 15min',
-    category: 'Pernas',
+    time: '1h 15min',
     exercises: ['Agachamento', 'Leg press', 'Cadeira extensora', 'Mesa flexora'],
-  },
-  {
-    title: 'Bracos e Abdomen',
-    level: 'Iniciante',
-    duration: '45 min',
-    category: 'Bracos',
-    exercises: ['Rosca alternada', 'Triceps testa', 'Prancha', 'Abdominal infra'],
   },
 ];
 
-const categories = ['Todos', 'Peito', 'Costas', 'Pernas', 'Bracos'];
-
 export default function ExploreScreen() {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
-  const [search, setSearch] = useState('');
+  const [customWorkouts, setCustomWorkouts] = useState<WorkoutPlan[]>([]);
 
-  const filteredPlans = useMemo(() => {
-    return workoutPlans.filter((plan) => {
-      const sameCategory =
-        selectedCategory === 'Todos' || plan.category === selectedCategory;
+  useFocusEffect(
+    useCallback(() => {
+      loadWorkouts();
+    }, [])
+  );
 
-      const searchText = search.trim().toLowerCase();
+  async function loadWorkouts() {
+    try {
+      const data = await AsyncStorage.getItem(CUSTOM_WORKOUTS_KEY);
+      setCustomWorkouts(data ? JSON.parse(data) : []);
+    } catch {
+      Alert.alert('Erro', 'Nao foi possivel carregar seus treinos.');
+    }
+  }
 
-      const matchSearch =
-        searchText.length === 0 ||
-        plan.title.toLowerCase().includes(searchText) ||
-        plan.exercises.some((exercise) =>
-          exercise.toLowerCase().includes(searchText)
-        );
+  async function deleteCustomWorkout(id: string) {
+    Alert.alert('Apagar treino', 'Deseja apagar este treino personalizado?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Apagar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const updated = customWorkouts.filter((item) => item.id !== id);
+            await AsyncStorage.setItem(CUSTOM_WORKOUTS_KEY, JSON.stringify(updated));
+            setCustomWorkouts(updated);
+          } catch {
+            Alert.alert('Erro', 'Nao foi possivel apagar o treino.');
+          }
+        },
+      },
+    ]);
+  }
 
-      return sameCategory && matchSearch;
-    });
-  }, [selectedCategory, search]);
-
-  function abrirTreino(plan: (typeof workoutPlans)[0]) {
+  function openWorkout(workout: WorkoutPlan) {
     router.push({
       pathname: '/modal',
       params: {
-        title: plan.title,
-        time: plan.duration,
-        level: plan.level,
-        exercises: plan.exercises.join(', '),
+        title: workout.title,
+        level: workout.level,
+        time: workout.time,
+        exercises: workout.exercises.join(','),
       },
     } as any);
   }
+
+  const workouts = [...customWorkouts, ...DEFAULT_WORKOUTS];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -99,158 +117,69 @@ export default function ExploreScreen() {
         contentContainerStyle={styles.container}
       >
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.eyebrow}>Biblioteca</Text>
             <Text style={styles.title}>Treinos</Text>
             <Text style={styles.subtitle}>
-              Escolha um treino pronto, filtre por grupo muscular ou pesquise exercicios.
+              Escolha um treino pronto ou crie um treino personalizado.
             </Text>
           </View>
 
           <TouchableOpacity
-            activeOpacity={0.8}
             style={styles.addButton}
-            onPress={() => Alert.alert('Criar treino', 'Funcao de criar treino em desenvolvimento.')}
+            activeOpacity={0.85}
+            onPress={() => router.push('/create-workout' as any)}
           >
-            <Ionicons name="add" size={25} color="#06111f" />
+            <Ionicons name="add" size={26} color="#06111f" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.searchBox}>
-          <Ionicons name="search-outline" size={20} color={COLORS.muted} />
-          <TextInput
-            placeholder="Buscar treino ou exercicio"
-            placeholderTextColor={COLORS.muted}
-            value={search}
-            onChangeText={setSearch}
-            style={styles.searchInput}
-          />
+        {workouts.map((workout) => (
+          <TouchableOpacity
+            key={workout.id}
+            activeOpacity={0.86}
+            style={styles.card}
+            onPress={() => openWorkout(workout)}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.iconBox}>
+                <Ionicons name="barbell-outline" size={24} color={COLORS.primary} />
+              </View>
 
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')}>
-              <Ionicons name="close-circle" size={20} color={COLORS.muted} />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryList}
-        >
-          {categories.map((category) => {
-            const active = selectedCategory === category;
-
-            return (
-              <TouchableOpacity
-                key={category}
-                activeOpacity={0.8}
-                onPress={() => setSelectedCategory(category)}
-                style={[
-                  styles.categoryButton,
-                  active && styles.categoryButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    active && styles.categoryTextActive,
-                  ]}
-                >
-                  {category}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.workoutTitle}>{workout.title}</Text>
+                <Text style={styles.workoutMeta}>
+                  {workout.level} • {workout.time} • {workout.exercises.length} exercicios
                 </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+              </View>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.highlightCard}
-          onPress={() => abrirTreino(workoutPlans[0])}
-        >
-          <View style={styles.highlightIcon}>
-            <Ionicons name="flash-outline" size={26} color={COLORS.primary} />
-          </View>
-
-          <View style={styles.highlightInfo}>
-            <Text style={styles.highlightTitle}>Sugestao do dia</Text>
-            <Text style={styles.highlightText}>
-              Treino superior com foco em hipertrofia e progressao de carga.
-            </Text>
-          </View>
-
-          <Ionicons name="chevron-forward" size={22} color={COLORS.muted} />
-        </TouchableOpacity>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Planos de treino</Text>
-          <Text style={styles.counter}>{filteredPlans.length} encontrados</Text>
-        </View>
-
-        {filteredPlans.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons name="search-outline" size={32} color={COLORS.muted} />
-            <Text style={styles.emptyTitle}>Nenhum treino encontrado</Text>
-            <Text style={styles.emptyText}>
-              Tente pesquisar outro nome ou selecionar outra categoria.
-            </Text>
-          </View>
-        ) : (
-          filteredPlans.map((plan) => (
-            <TouchableOpacity
-              activeOpacity={0.86}
-              key={plan.title}
-              style={styles.planCard}
-              onPress={() => abrirTreino(plan)}
-            >
-              <View style={styles.planHeader}>
-                <View style={styles.planIcon}>
-                  <Ionicons name="barbell-outline" size={23} color={COLORS.primary} />
-                </View>
-
-                <View style={styles.planInfo}>
-                  <Text style={styles.planTitle}>{plan.title}</Text>
-                  <Text style={styles.planMeta}>
-                    {plan.level} • {plan.duration}
-                  </Text>
-                </View>
-
+              {workout.custom ? (
+                <TouchableOpacity
+                  onPress={() => deleteCustomWorkout(workout.id)}
+                  style={styles.deleteButton}
+                >
+                  <Ionicons name="trash-outline" size={18} color={COLORS.orange} />
+                </TouchableOpacity>
+              ) : (
                 <Ionicons name="chevron-forward" size={20} color={COLORS.muted} />
-              </View>
+              )}
+            </View>
 
-              <View style={styles.exerciseList}>
-                {plan.exercises.map((exercise) => (
-                  <View key={exercise} style={styles.exerciseItem}>
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
-                    <Text style={styles.exerciseText}>{exercise}</Text>
-                  </View>
-                ))}
-              </View>
+            <View style={styles.exerciseList}>
+              {workout.exercises.map((exercise, index) => (
+                <View key={`${exercise}-${index}`} style={styles.exerciseItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={styles.exerciseText}>{exercise}</Text>
+                </View>
+              ))}
+            </View>
 
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={styles.secondaryButton}
-                onPress={() => abrirTreino(plan)}
-              >
-                <Ionicons name="play-outline" size={18} color={COLORS.primary} />
-                <Text style={styles.secondaryButtonText}>Comecar este treino</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          ))
-        )}
-
-        <View style={styles.tipCard}>
-          <Ionicons name="bulb-outline" size={24} color={COLORS.orange} />
-
-          <View style={styles.tipInfo}>
-            <Text style={styles.tipTitle}>Dica rapida</Text>
-            <Text style={styles.tipText}>
-              Anote carga, repeticoes e descanso. Isso deixa sua evolucao muito
-              mais facil de acompanhar.
-            </Text>
-          </View>
-        </View>
+            <View style={styles.startButton}>
+              <Ionicons name="play-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.startButtonText}>Abrir treino</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -263,36 +192,35 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 12,
     paddingBottom: 120,
+    backgroundColor: COLORS.background,
   },
   header: {
-    marginBottom: 22,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 14,
+    gap: 12,
+    marginBottom: 22,
   },
   eyebrow: {
     color: COLORS.primary,
     fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontWeight: '900',
     textTransform: 'uppercase',
-    marginBottom: 6,
+    letterSpacing: 1,
   },
   title: {
     color: COLORS.text,
     fontSize: 34,
     fontWeight: '900',
-    letterSpacing: -1,
+    marginTop: 4,
   },
   subtitle: {
     color: COLORS.muted,
     fontSize: 15,
-    marginTop: 6,
     lineHeight: 21,
-    maxWidth: 310,
+    maxWidth: 300,
+    marginTop: 6,
   },
   addButton: {
     width: 48,
@@ -302,206 +230,73 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchBox: {
-    height: 54,
-    borderRadius: 18,
+  card: {
     backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
-  },
-  searchInput: {
-    flex: 1,
-    color: COLORS.text,
-    fontSize: 15,
-  },
-  categoryList: {
-    gap: 10,
-    paddingBottom: 18,
-  },
-  categoryButton: {
-    paddingHorizontal: 16,
-    height: 42,
-    borderRadius: 999,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  categoryButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  categoryText: {
-    color: COLORS.muted,
-    fontWeight: '800',
-    fontSize: 13,
-  },
-  categoryTextActive: {
-    color: '#06111f',
-  },
-  highlightCard: {
-    backgroundColor: COLORS.cardSoft,
     borderRadius: 24,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    marginBottom: 24,
-  },
-  highlightIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    backgroundColor: '#00d4a619',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  highlightInfo: {
-    flex: 1,
-  },
-  highlightTitle: {
-    color: COLORS.text,
-    fontSize: 17,
-    fontWeight: '900',
-  },
-  highlightText: {
-    color: COLORS.muted,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 4,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    color: COLORS.text,
-    fontSize: 20,
-    fontWeight: '900',
-  },
-  counter: {
-    color: COLORS.muted,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  planCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 26,
-    padding: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
     marginBottom: 16,
   },
-  planHeader: {
+  cardHeader: {
     flexDirection: 'row',
-    gap: 13,
     alignItems: 'center',
-    marginBottom: 16,
+    gap: 12,
   },
-  planIcon: {
+  iconBox: {
     width: 50,
     height: 50,
     borderRadius: 18,
-    backgroundColor: '#00d4a619',
+    backgroundColor: '#00d4a620',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  planInfo: {
-    flex: 1,
-  },
-  planTitle: {
+  workoutTitle: {
     color: COLORS.text,
     fontSize: 17,
     fontWeight: '900',
   },
-  planMeta: {
+  workoutMeta: {
     color: COLORS.muted,
     fontSize: 13,
     marginTop: 4,
   },
+  deleteButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 14,
+    backgroundColor: COLORS.soft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   exerciseList: {
-    gap: 10,
-    marginBottom: 18,
+    marginTop: 16,
+    gap: 8,
   },
   exerciseItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
+    gap: 8,
   },
   exerciseText: {
     color: COLORS.text,
     fontSize: 14,
     fontWeight: '600',
   },
-  secondaryButton: {
-    height: 48,
+  startButton: {
+    height: 46,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.primary,
+    marginTop: 16,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
   },
-  secondaryButtonText: {
+  startButtonText: {
     color: COLORS.primary,
     fontSize: 15,
     fontWeight: '900',
-  },
-  emptyCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 24,
-    padding: 22,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    color: COLORS.text,
-    fontSize: 17,
-    fontWeight: '900',
-    marginTop: 10,
-  },
-  emptyText: {
-    color: COLORS.muted,
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 6,
-    lineHeight: 20,
-  },
-  tipCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 22,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
-  tipInfo: {
-    flex: 1,
-  },
-  tipTitle: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  tipText: {
-    color: COLORS.muted,
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 4,
   },
 });

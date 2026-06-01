@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -13,12 +13,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type IconName = React.ComponentProps<typeof Ionicons>['name'];
-
 const COLORS = {
   background: '#07111f',
   card: '#0d1b31',
-  cardSoft: '#12213a',
+  soft: '#12213a',
   primary: '#00d4a6',
   blue: '#4c8dff',
   orange: '#ffb84d',
@@ -28,124 +26,126 @@ const COLORS = {
   border: '#203754',
 };
 
+const STORAGE_WEIGHT_KEY = '@fittrack:body-weight';
+const STORAGE_PROFILE_KEY = '@fittrack:profile';
+const WORKOUT_HISTORY_KEY = '@fittrack:workout-history';
+
 type WeightRecord = {
   value: number;
   date: string;
 };
 
-const STORAGE_WEIGHT_KEY = '@fittrack:body-weight';
+type ProfileData = {
+  name: string;
+  age: string;
+  height: string;
+  goalWeight: string;
+};
 
-const summary = [
-  {
-    label: 'Treinos',
-    value: '12',
-    detail: 'este mes',
-    icon: 'barbell-outline' as IconName,
-    color: COLORS.primary,
-  },
-  {
-    label: 'Carga',
-    value: '8.4t',
-    detail: 'volume total',
-    icon: 'trending-up-outline' as IconName,
-    color: COLORS.blue,
-  },
-  {
-    label: 'Sequencia',
-    value: '5',
-    detail: 'dias ativos',
-    icon: 'flame-outline' as IconName,
-    color: COLORS.orange,
-  },
-  {
-    label: 'Meta',
-    value: '82%',
-    detail: 'concluida',
-    icon: 'trophy-outline' as IconName,
-    color: COLORS.red,
-  },
-];
+type WorkoutSession = {
+  id: string;
+  title: string;
+  date: string;
+  totalVolume: number;
+};
 
-const recentWorkouts = [
-  {
-    name: 'Peito, Ombro e Triceps',
-    date: 'Hoje',
-    exercises: ['Supino reto', 'Supino inclinado', 'Desenvolvimento', 'Triceps corda'],
-    time: '58 min',
-  },
-  {
-    name: 'Costas e Biceps',
-    date: 'Ontem',
-    exercises: ['Puxada alta', 'Remada curvada', 'Remada baixa', 'Rosca direta'],
-    time: '1h 05min',
-  },
-  {
-    name: 'Pernas Completo',
-    date: 'Segunda',
-    exercises: ['Agachamento', 'Leg press', 'Cadeira extensora', 'Mesa flexora'],
-    time: '1h 12min',
-  },
-];
+const DEFAULT_PROFILE: ProfileData = {
+  name: '',
+  age: '',
+  height: '',
+  goalWeight: '',
+};
+
+function parseNumber(value: string) {
+  return Number(value.replace(',', '.'));
+}
+
+function formatNumber(value: number) {
+  return value.toFixed(1).replace('.', ',');
+}
+
+function getBmiStatus(bmi: number) {
+  if (bmi < 18.5) return { label: 'Abaixo', color: COLORS.blue };
+  if (bmi < 25) return { label: 'Normal', color: COLORS.primary };
+  if (bmi < 30) return { label: 'Sobrepeso', color: COLORS.orange };
+  return { label: 'Alto', color: COLORS.red };
+}
 
 export default function HomeScreen() {
   const router = useRouter();
 
-  const [bodyWeight, setBodyWeight] = useState('');
-  const [weightHistory, setWeightHistory] = useState<WeightRecord[]>([]);
+  const [weightInput, setWeightInput] = useState('');
+  const [weights, setWeights] = useState<WeightRecord[]>([]);
+  const [profile, setProfile] = useState<ProfileData>(DEFAULT_PROFILE);
+  const [workouts, setWorkouts] = useState<WorkoutSession[]>([]);
 
-  useEffect(() => {
-    carregarPesos();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
-  async function carregarPesos() {
+  async function loadData() {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_WEIGHT_KEY);
+      const [weightData, profileData, workoutData] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_WEIGHT_KEY),
+        AsyncStorage.getItem(STORAGE_PROFILE_KEY),
+        AsyncStorage.getItem(WORKOUT_HISTORY_KEY),
+      ]);
 
-      if (data) {
-        setWeightHistory(JSON.parse(data));
-      }
+      setWeights(weightData ? JSON.parse(weightData) : []);
+      setProfile(
+        profileData
+          ? { ...DEFAULT_PROFILE, ...JSON.parse(profileData) }
+          : DEFAULT_PROFILE
+      );
+      setWorkouts(workoutData ? JSON.parse(workoutData) : []);
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel carregar seu historico de peso.');
+      Alert.alert('Erro', 'Nao foi possivel carregar os dados.');
     }
   }
 
-  async function salvarPesoCorporal() {
-    const value = Number(bodyWeight.replace(',', '.'));
+  async function saveWeight() {
+    const value = parseNumber(weightInput);
 
     if (!value || value <= 0) {
       Alert.alert('Peso invalido', 'Digite um peso valido. Exemplo: 103.5');
       return;
     }
 
-    const novoRegistro: WeightRecord = {
+    const newRecord: WeightRecord = {
       value,
       date: new Date().toLocaleDateString('pt-BR'),
     };
 
-    const novoHistorico = [novoRegistro, ...weightHistory].slice(0, 5);
+    const newHistory = [newRecord, ...weights].slice(0, 40);
 
     try {
-      await AsyncStorage.setItem(STORAGE_WEIGHT_KEY, JSON.stringify(novoHistorico));
-      setWeightHistory(novoHistorico);
-      setBodyWeight('');
-      Alert.alert('Peso salvo', `Seu peso de ${value} kg foi registrado.`);
+      await AsyncStorage.setItem(STORAGE_WEIGHT_KEY, JSON.stringify(newHistory));
+      setWeights(newHistory);
+      setWeightInput('');
+      Alert.alert('Peso salvo', `Peso de ${formatNumber(value)} kg registrado.`);
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel salvar seu peso.');
+      Alert.alert('Erro', 'Nao foi possivel salvar o peso.');
     }
   }
 
-  function abrirTreino(workout: (typeof recentWorkouts)[0]) {
-    router.push({
-      pathname: '/modal',
-      params: {
-        title: workout.name,
-        time: workout.time,
-        exercises: workout.exercises.join(','),
-      },
-    } as any);
-  }
+  const currentWeight = weights[0]?.value ?? 0;
+  const previousWeight = weights[1]?.value ?? 0;
+  const height = parseNumber(profile.height || '0');
+  const goalWeight = parseNumber(profile.goalWeight || '0');
 
-  const ultimoPeso = weightHistory.length > 0 ? `${weightHistory[0].value} kg` : '--';
+  const bmi = currentWeight && height ? currentWeight / (height * height) : 0;
+  const bmiStatus = bmi ? getBmiStatus(bmi) : null;
+
+  const weightChange =
+    currentWeight && previousWeight ? currentWeight - previousWeight : 0;
+
+  const goalDistance =
+    currentWeight && goalWeight ? currentWeight - goalWeight : 0;
+
+  const totalVolume = workouts.reduce((acc, item) => acc + item.totalVolume, 0);
+  const lastWorkout = workouts[0];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -154,42 +154,54 @@ export default function HomeScreen() {
         contentContainerStyle={styles.container}
       >
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.eyebrow}>FitTrack Pro</Text>
-            <Text style={styles.title}>Seu progresso</Text>
+
+            <Text style={styles.title}>
+              {profile.name ? `Ola, ${profile.name}` : 'Bem-vindo'}
+            </Text>
+
             <Text style={styles.subtitle}>
-              Registre seu peso, treinos, cargas e acompanhe sua evolucao.
+              Registre seu peso, crie treinos, anote series e acompanhe sua evolucao.
             </Text>
           </View>
 
           <TouchableOpacity
+            style={styles.iconButton}
             activeOpacity={0.8}
-            style={styles.profileButton}
-            onPress={() => Alert.alert('Perfil', `Ultimo peso registrado: ${ultimoPeso}`)}
+            onPress={() => router.push('/profile' as any)}
           >
             <Ionicons name="person-outline" size={22} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.heroCard}>
-          <View style={styles.heroTop}>
+        <View style={styles.mainCard}>
+          <View style={styles.rowBetween}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.heroLabel}>Peso corporal</Text>
-              <Text style={styles.heroTitle}>{ultimoPeso}</Text>
-              <Text style={styles.heroText}>
-                Digite seu peso atual para acompanhar sua evolucao.
+              <Text style={styles.cardLabel}>Peso corporal atual</Text>
+
+              <Text style={styles.bigValue}>
+                {currentWeight ? `${formatNumber(currentWeight)} kg` : '--'}
+              </Text>
+
+              <Text style={styles.cardText}>
+                {previousWeight
+                  ? `Mudanca: ${weightChange > 0 ? '+' : ''}${formatNumber(
+                      weightChange
+                    )} kg`
+                  : 'Digite seu peso atual para iniciar o acompanhamento.'}
               </Text>
             </View>
 
-            <View style={styles.heroIcon}>
+            <View style={styles.bigIcon}>
               <Ionicons name="scale-outline" size={32} color={COLORS.primary} />
             </View>
           </View>
 
           <View style={styles.inputRow}>
             <TextInput
-              value={bodyWeight}
-              onChangeText={setBodyWeight}
+              value={weightInput}
+              onChangeText={setWeightInput}
               placeholder="Ex: 103.5"
               placeholderTextColor={COLORS.muted}
               keyboardType="decimal-pad"
@@ -197,119 +209,98 @@ export default function HomeScreen() {
             />
 
             <TouchableOpacity
+              style={styles.saveButton}
               activeOpacity={0.85}
-              style={styles.saveSmallButton}
-              onPress={salvarPesoCorporal}
+              onPress={saveWeight}
             >
-              <Text style={styles.saveSmallButtonText}>Salvar</Text>
+              <Text style={styles.saveButtonText}>Salvar</Text>
             </TouchableOpacity>
           </View>
-
-          {weightHistory.length > 0 && (
-            <View style={styles.historyBox}>
-              <Text style={styles.historyTitle}>Historico recente</Text>
-
-              {weightHistory.map((item, index) => (
-                <View key={`${item.date}-${index}`} style={styles.historyItem}>
-                  <Text style={styles.historyDate}>{item.date}</Text>
-                  <Text style={styles.historyValue}>{item.value} kg</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.quickButton}
-            onPress={() => abrirTreino(recentWorkouts[0])}
-          >
-            <Ionicons name="play-outline" size={22} color={COLORS.primary} />
-            <Text style={styles.quickText}>Iniciar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.quickButton}
-            onPress={() => router.push('/explore' as any)}
-          >
-            <Ionicons name="barbell-outline" size={22} color={COLORS.blue} />
-            <Text style={styles.quickText}>Treinos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.quickButton}
-            onPress={() => Alert.alert('Progresso', `Peso atual: ${ultimoPeso}`)}
-          >
-            <Ionicons name="analytics-outline" size={22} color={COLORS.orange} />
-            <Text style={styles.quickText}>Progresso</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.grid}>
-          {summary.map((item) => (
-            <View key={item.label} style={styles.metricCard}>
-              <View style={[styles.metricIcon, { backgroundColor: `${item.color}20` }]}>
-                <Ionicons name={item.icon} size={22} color={item.color} />
-              </View>
+          <View style={styles.metricCard}>
+            <Ionicons
+              name="body-outline"
+              size={24}
+              color={bmiStatus?.color ?? COLORS.muted}
+            />
+            <Text style={styles.metricValue}>{bmi ? formatNumber(bmi) : '--'}</Text>
+            <Text style={styles.metricTitle}>IMC</Text>
+            <Text style={[styles.metricDesc, { color: bmiStatus?.color ?? COLORS.muted }]}>
+              {bmiStatus?.label ?? 'Sem dados'}
+            </Text>
+          </View>
 
-              <Text style={styles.metricValue}>{item.value}</Text>
-              <Text style={styles.metricLabel}>{item.label}</Text>
-              <Text style={styles.metricDetail}>{item.detail}</Text>
-            </View>
-          ))}
+          <View style={styles.metricCard}>
+            <Ionicons name="trophy-outline" size={24} color={COLORS.orange} />
+            <Text style={styles.metricValue}>
+              {currentWeight && goalWeight
+                ? `${goalDistance > 0 ? '+' : ''}${formatNumber(goalDistance)} kg`
+                : '--'}
+            </Text>
+            <Text style={styles.metricTitle}>Meta</Text>
+            <Text style={styles.metricDesc}>distancia</Text>
+          </View>
+
+          <View style={styles.metricCard}>
+            <Ionicons name="barbell-outline" size={24} color={COLORS.blue} />
+            <Text style={styles.metricValue}>
+              {totalVolume ? `${Math.round(totalVolume)} kg` : '--'}
+            </Text>
+            <Text style={styles.metricTitle}>Volume</Text>
+            <Text style={styles.metricDesc}>total salvo</Text>
+          </View>
+
+          <View style={styles.metricCard}>
+            <Ionicons name="fitness-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.metricValue}>
+              {lastWorkout ? `${Math.round(lastWorkout.totalVolume)} kg` : '--'}
+            </Text>
+            <Text style={styles.metricTitle}>Ultimo treino</Text>
+            <Text style={styles.metricDesc}>volume</Text>
+          </View>
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Treinos recentes</Text>
-
-          <TouchableOpacity onPress={() => router.push('/explore' as any)}>
-            <Text style={styles.sectionAction}>Ver todos</Text>
-          </TouchableOpacity>
-        </View>
-
-        {recentWorkouts.map((workout) => (
+        <View style={styles.actions}>
           <TouchableOpacity
-            activeOpacity={0.82}
-            key={workout.name}
-            style={styles.workoutCard}
-            onPress={() => abrirTreino(workout)}
+            style={styles.actionButton}
+            activeOpacity={0.8}
+            onPress={() => router.push('/explore' as any)}
           >
-            <View style={styles.workoutIcon}>
-              <Ionicons name="fitness-outline" size={22} color={COLORS.primary} />
-            </View>
-
-            <View style={styles.workoutInfo}>
-              <Text style={styles.workoutName}>{workout.name}</Text>
-              <Text style={styles.workoutDetails}>
-                {workout.exercises.length} exercicios • {workout.time}
-              </Text>
-            </View>
-
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.workoutDate}>{workout.date}</Text>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.muted} />
-            </View>
+            <Ionicons name="barbell-outline" size={22} color={COLORS.primary} />
+            <Text style={styles.actionText}>Treinos</Text>
           </TouchableOpacity>
-        ))}
 
-        <View style={styles.progressCard}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Evolucao semanal</Text>
-            <Ionicons name="trending-up" size={22} color={COLORS.primary} />
-          </View>
+          <TouchableOpacity
+            style={styles.actionButton}
+            activeOpacity={0.8}
+            onPress={() => router.push('/create-workout' as any)}
+          >
+            <Ionicons name="add-circle-outline" size={22} color={COLORS.blue} />
+            <Text style={styles.actionText}>Criar treino</Text>
+          </TouchableOpacity>
 
-          <Text style={styles.progressText}>
-            Voce treinou 5 de 6 dias planejados.
+          <TouchableOpacity
+            style={styles.actionButton}
+            activeOpacity={0.8}
+            onPress={() => router.push('/progress' as any)}
+          >
+            <Ionicons name="analytics-outline" size={22} color={COLORS.orange} />
+            <Text style={styles.actionText}>Graficos</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.mainCard}>
+          <Text style={styles.sectionTitle}>Resumo</Text>
+
+          <Text style={styles.cardText}>
+            {workouts.length > 0
+              ? `Voce possui ${workouts.length} treinos salvos e ${Math.round(
+                  totalVolume
+                )} kg de volume acumulado.`
+              : 'Crie ou abra um treino, registre carga e repeticoes por serie e salve para ver os graficos.'}
           </Text>
-
-          <View style={styles.progressBarBackground}>
-            <View style={styles.progressBarFill} />
-          </View>
-
-          <Text style={styles.progressPercent}>82% da meta concluida</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -323,283 +314,167 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 12,
     paddingBottom: 120,
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    gap: 12,
     marginBottom: 22,
   },
   eyebrow: {
     color: COLORS.primary,
     fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontWeight: '900',
     textTransform: 'uppercase',
-    marginBottom: 6,
+    letterSpacing: 1,
   },
   title: {
     color: COLORS.text,
-    fontSize: 31,
+    fontSize: 32,
     fontWeight: '900',
-    letterSpacing: -1,
+    marginTop: 4,
   },
   subtitle: {
     color: COLORS.muted,
     fontSize: 15,
-    marginTop: 6,
-    maxWidth: 280,
     lineHeight: 21,
+    maxWidth: 310,
+    marginTop: 6,
   },
-  profileButton: {
+  iconButton: {
     width: 46,
     height: 46,
     borderRadius: 16,
     backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
   },
-  heroCard: {
+  mainCard: {
     backgroundColor: COLORS.card,
-    borderRadius: 28,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 26,
+    padding: 18,
     borderWidth: 1,
     borderColor: COLORS.border,
+    marginBottom: 16,
   },
-  heroTop: {
+  rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 14,
-    marginBottom: 20,
+    gap: 12,
   },
-  heroLabel: {
+  cardLabel: {
     color: COLORS.muted,
     fontSize: 13,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  heroTitle: {
-    color: COLORS.text,
-    fontSize: 28,
     fontWeight: '900',
   },
-  heroText: {
+  bigValue: {
+    color: COLORS.text,
+    fontSize: 34,
+    fontWeight: '900',
+    marginTop: 4,
+  },
+  cardText: {
     color: COLORS.muted,
     fontSize: 14,
     lineHeight: 20,
-    marginTop: 8,
+    marginTop: 6,
   },
-  heroIcon: {
+  bigIcon: {
     width: 64,
     height: 64,
     borderRadius: 22,
-    backgroundColor: '#00d4a619',
+    backgroundColor: '#00d4a620',
     alignItems: 'center',
     justifyContent: 'center',
   },
   inputRow: {
     flexDirection: 'row',
     gap: 10,
+    marginTop: 18,
   },
   input: {
     flex: 1,
     height: 52,
+    backgroundColor: COLORS.soft,
     borderRadius: 16,
-    backgroundColor: COLORS.cardSoft,
     borderWidth: 1,
     borderColor: COLORS.border,
     color: COLORS.text,
-    paddingHorizontal: 15,
+    paddingHorizontal: 14,
     fontSize: 15,
   },
-  saveSmallButton: {
+  saveButton: {
     height: 52,
     paddingHorizontal: 18,
     borderRadius: 16,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
     justifyContent: 'center',
   },
-  saveSmallButtonText: {
+  saveButtonText: {
     color: '#06111f',
     fontWeight: '900',
     fontSize: 15,
-  },
-  historyBox: {
-    backgroundColor: COLORS.cardSoft,
-    borderRadius: 18,
-    padding: 14,
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  historyTitle: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: '900',
-    marginBottom: 10,
-  },
-  historyItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 5,
-  },
-  historyDate: {
-    color: COLORS.muted,
-    fontSize: 13,
-  },
-  historyValue: {
-    color: COLORS.primary,
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  quickActions: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 18,
-  },
-  quickButton: {
-    flex: 1,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 20,
-    paddingVertical: 14,
-    alignItems: 'center',
-    gap: 7,
-  },
-  quickText: {
-    color: COLORS.text,
-    fontSize: 12,
-    fontWeight: '800',
-    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   metricCard: {
     width: '48%',
     backgroundColor: COLORS.card,
-    borderRadius: 24,
+    borderRadius: 22,
     padding: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  metricIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
   metricValue: {
     color: COLORS.text,
-    fontSize: 25,
+    fontSize: 22,
     fontWeight: '900',
+    marginTop: 10,
   },
-  metricLabel: {
+  metricTitle: {
     color: COLORS.text,
     fontSize: 14,
     fontWeight: '800',
     marginTop: 2,
   },
-  metricDetail: {
+  metricDesc: {
     color: COLORS.muted,
     fontSize: 12,
     marginTop: 2,
   },
-  sectionHeader: {
+  actions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 16,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
+    paddingVertical: 14,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 6,
+  },
+  actionText: {
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   sectionTitle: {
     color: COLORS.text,
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: '900',
-  },
-  sectionAction: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  workoutCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 22,
-    padding: 15,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  workoutIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: '#00d4a619',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  workoutInfo: {
-    flex: 1,
-  },
-  workoutName: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  workoutDetails: {
-    color: COLORS.muted,
-    fontSize: 13,
-    marginTop: 4,
-  },
-  workoutDate: {
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  progressCard: {
-    backgroundColor: COLORS.cardSoft,
-    borderRadius: 24,
-    padding: 18,
-    marginTop: 22,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  progressText: {
-    color: COLORS.muted,
-    fontSize: 14,
-    marginTop: 6,
-  },
-  progressBarBackground: {
-    height: 12,
-    borderRadius: 999,
-    backgroundColor: '#243955',
-    marginTop: 18,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    width: '82%',
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: COLORS.primary,
-  },
-  progressPercent: {
-    color: COLORS.primary,
-    fontSize: 13,
-    fontWeight: '800',
-    marginTop: 10,
   },
 });
