@@ -1,50 +1,186 @@
-# Welcome to your Expo app 👋
+# FitTrack Mobile 🏋️‍♂️📱
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> Plataforma mobile moderna para gerenciamento e acompanhamento de treinos físicos, desenvolvida com React Native, Expo Router e TypeScript.
 
-## Get started
+O **FitTrack Mobile** foi criado para oferecer uma experiência prática, rápida e intuitiva no registro de exercícios físicos, permitindo que usuários acompanhem sua rotina de treinos diretamente pelo celular.
 
-1. Install dependencies
+O projeto utiliza tecnologias modernas do ecossistema React Native e foi estruturado com foco em:
 
-   ```bash
-   npm install
-   ```
+* organização escalável
+* experiência do usuário (UX)
+* navegação fluida
+* componentização
+* persistência local de dados
+* futura integração com back-end em nuvem
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+# ✨ Funcionalidades
 
-In the output, you'll find options to open the app in a
+## 📋 Gestão de Treinos
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+* Visualização dos treinos cadastrados
+* Interface organizada e responsiva
+* Tratamento de estado vazio (*Empty State*)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## ➕ Criação Rápida de Treinos
 
-## Get a fresh project
+* Botão flutuante (FAB)
+* Navegação via modal
+* Fluxo intuitivo para cadastro de exercícios
 
-When you're ready, run:
+## 🧭 Navegação Moderna
 
-```bash
-npm run reset-project
+* Navegação baseada em arquivos com **Expo Router**
+* Sistema de abas (*Bottom Tabs*)
+* Estrutura otimizada para escalabilidade
+
+## 📈 Evolução de Performance *(Em desenvolvimento)*
+
+* Histórico de treinos
+* Gráficos de evolução
+* Frequência semanal
+* Acompanhamento de cargas
+
+## ☁️ Integração Back-end *(Planejado)*
+
+* Integração com Back4App (Parse Server)
+* Operações CRUD completas
+* Sincronização em nuvem
+* Persistência remota de dados
+
+---
+
+# 🛠️ Tecnologias Utilizadas
+
+## Front-end
+
+* React Native
+* React 19
+* TypeScript
+
+## Frameworks e Ferramentas
+
+* Expo SDK 54
+* Expo Router
+* Async Storage
+* Expo Vector Icons (Ionicons)
+
+## Arquitetura e Conceitos
+
+* Componentização
+* Navegação por rotas
+* Hooks do React
+* Persistência local
+* Mobile-first UI
+
+---
+
+# 📱 Screenshots
+
+> *(Adicione aqui prints reais do aplicativo para deixar o repositório mais profissional.)*
+
+Exemplos recomendados:
+
+* Tela inicial
+* Cadastro de treino
+* Dashboard
+* Modal de criação
+* Evolução de desempenho
+
+---
+
+# 📂 Estrutura do Projeto
+
+```text
+fittrackMob/
+├── app/
+│   ├── (tabs)/
+│   │   ├── index.tsx
+│   │   ├── explore.tsx
+│   │   ├── progress.tsx
+│   │   └── profile.tsx
+│   ├── _layout.tsx
+│   └── create-workout.tsx
+├── assets/
+├── components/
+└── package.json
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+# 🚀 Como Executar o Projeto
 
-To learn more about developing your project with Expo, look at the following resources:
+## Clone o repositório
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+git clone https://github.com/seu-usuario/fittrack-mobile.git
+```
 
-## Join the community
+## Acesse a pasta
 
-Join our community of developers creating universal apps.
+```bash
+cd fittrackMob
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Instale as dependências
+
+```bash
+npm install
+```
+
+## Execute o projeto
+
+```bash
+npx expo start
+```
+
+Depois:
+
+* pressione `a` para Android
+* pressione `i` para iOS
+* ou escaneie o QR Code com o aplicativo Expo Go
+
+---
+
+# 🎯 Objetivos do Projeto
+
+Este projeto foi desenvolvido com foco em:
+
+* aprendizado de desenvolvimento mobile
+* boas práticas com React Native
+* arquitetura escalável
+* experiência do usuário
+* integração futura com APIs e banco de dados
+
+---
+
+# 🔮 Melhorias Futuras
+
+* Autenticação de usuários
+* Login social (Google/Apple)
+* Dashboard avançado
+* Gráficos interativos
+* Notificações de treino
+* Tema escuro
+* Integração com smartwatch
+* Publicação na Play Store e App Store
+
+---
+
+# 👨‍💻 Equipe
+
+Projeto desenvolvido para a disciplina de Desenvolvimento Mobile.
+
+* Ricardo França
+* Gustavo Costa
+* Gerson Gomes
+* Arthur Couto
+* Pedro Garcia
+* Addson Gabriel
+
+---
+
+# 📄 Licença
+
+Este projeto é destinado para fins acadêmicos e educacionais.
