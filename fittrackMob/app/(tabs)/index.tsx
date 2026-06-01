@@ -1,13 +1,19 @@
-import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+
+type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const COLORS = {
   background: '#07111f',
@@ -22,33 +28,40 @@ const COLORS = {
   border: '#203754',
 };
 
+type WeightRecord = {
+  value: number;
+  date: string;
+};
+
+const STORAGE_WEIGHT_KEY = '@fittrack:body-weight';
+
 const summary = [
   {
     label: 'Treinos',
     value: '12',
     detail: 'este mes',
-    icon: 'barbell-outline',
+    icon: 'barbell-outline' as IconName,
     color: COLORS.primary,
   },
   {
     label: 'Carga',
     value: '8.4t',
     detail: 'volume total',
-    icon: 'trending-up-outline',
+    icon: 'trending-up-outline' as IconName,
     color: COLORS.blue,
   },
   {
     label: 'Sequencia',
     value: '5',
     detail: 'dias ativos',
-    icon: 'flame-outline',
+    icon: 'flame-outline' as IconName,
     color: COLORS.orange,
   },
   {
     label: 'Meta',
     value: '82%',
     detail: 'concluida',
-    icon: 'trophy-outline',
+    icon: 'trophy-outline' as IconName,
     color: COLORS.red,
   },
 ];
@@ -57,24 +70,83 @@ const recentWorkouts = [
   {
     name: 'Peito, Ombro e Triceps',
     date: 'Hoje',
-    exercises: '6 exercicios',
+    exercises: ['Supino reto', 'Supino inclinado', 'Desenvolvimento', 'Triceps corda'],
     time: '58 min',
   },
   {
     name: 'Costas e Biceps',
     date: 'Ontem',
-    exercises: '7 exercicios',
+    exercises: ['Puxada alta', 'Remada curvada', 'Remada baixa', 'Rosca direta'],
     time: '1h 05min',
   },
   {
     name: 'Pernas Completo',
     date: 'Segunda',
-    exercises: '8 exercicios',
+    exercises: ['Agachamento', 'Leg press', 'Cadeira extensora', 'Mesa flexora'],
     time: '1h 12min',
   },
 ];
 
 export default function HomeScreen() {
+  const router = useRouter();
+
+  const [bodyWeight, setBodyWeight] = useState('');
+  const [weightHistory, setWeightHistory] = useState<WeightRecord[]>([]);
+
+  useEffect(() => {
+    carregarPesos();
+  }, []);
+
+  async function carregarPesos() {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_WEIGHT_KEY);
+
+      if (data) {
+        setWeightHistory(JSON.parse(data));
+      }
+    } catch {
+      Alert.alert('Erro', 'Nao foi possivel carregar seu historico de peso.');
+    }
+  }
+
+  async function salvarPesoCorporal() {
+    const value = Number(bodyWeight.replace(',', '.'));
+
+    if (!value || value <= 0) {
+      Alert.alert('Peso invalido', 'Digite um peso valido. Exemplo: 103.5');
+      return;
+    }
+
+    const novoRegistro: WeightRecord = {
+      value,
+      date: new Date().toLocaleDateString('pt-BR'),
+    };
+
+    const novoHistorico = [novoRegistro, ...weightHistory].slice(0, 5);
+
+    try {
+      await AsyncStorage.setItem(STORAGE_WEIGHT_KEY, JSON.stringify(novoHistorico));
+      setWeightHistory(novoHistorico);
+      setBodyWeight('');
+      Alert.alert('Peso salvo', `Seu peso de ${value} kg foi registrado.`);
+    } catch {
+      Alert.alert('Erro', 'Nao foi possivel salvar seu peso.');
+    }
+  }
+
+  function abrirTreino(workout: (typeof recentWorkouts)[0]) {
+    router.push({
+      pathname: '/modal',
+      params: {
+        title: workout.name,
+        time: workout.time,
+        exercises: workout.exercises.join(','),
+      },
+    } as any);
+  }
+
+  const ultimoPeso = weightHistory.length > 0 ? `${weightHistory[0].value} kg` : '--';
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -84,47 +156,103 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.eyebrow}>FitTrack Pro</Text>
-            <Text style={styles.title}>Seu treino de hoje</Text>
+            <Text style={styles.title}>Seu progresso</Text>
             <Text style={styles.subtitle}>
-              Acompanhe sua evolucao, volume e frequencia.
+              Registre seu peso, treinos, cargas e acompanhe sua evolucao.
             </Text>
           </View>
 
-          <TouchableOpacity style={styles.profileButton}>
-            <Ionicons name="person-outline" size={22} color={COLORS.text} />
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.profileButton}
+            onPress={() => Alert.alert('Perfil', `Ultimo peso registrado: ${ultimoPeso}`)}
+          >
+            <Ionicons name="person-outline" size={22} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
-            <View>
-              <Text style={styles.heroLabel}>Proximo treino</Text>
-              <Text style={styles.heroTitle}>Peito e Triceps</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.heroLabel}>Peso corporal</Text>
+              <Text style={styles.heroTitle}>{ultimoPeso}</Text>
               <Text style={styles.heroText}>
-                Foque em progressao de carga e boa execucao.
+                Digite seu peso atual para acompanhar sua evolucao.
               </Text>
             </View>
 
             <View style={styles.heroIcon}>
-              <Ionicons name="fitness-outline" size={34} color={COLORS.primary} />
+              <Ionicons name="scale-outline" size={32} color={COLORS.primary} />
             </View>
           </View>
 
-          <TouchableOpacity style={styles.primaryButton}>
-            <Ionicons name="play" size={18} color="#06111f" />
-            <Text style={styles.primaryButtonText}>Iniciar treino</Text>
+          <View style={styles.inputRow}>
+            <TextInput
+              value={bodyWeight}
+              onChangeText={setBodyWeight}
+              placeholder="Ex: 103.5"
+              placeholderTextColor={COLORS.muted}
+              keyboardType="decimal-pad"
+              style={styles.input}
+            />
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.saveSmallButton}
+              onPress={salvarPesoCorporal}
+            >
+              <Text style={styles.saveSmallButtonText}>Salvar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {weightHistory.length > 0 && (
+            <View style={styles.historyBox}>
+              <Text style={styles.historyTitle}>Historico recente</Text>
+
+              {weightHistory.map((item, index) => (
+                <View key={`${item.date}-${index}`} style={styles.historyItem}>
+                  <Text style={styles.historyDate}>{item.date}</Text>
+                  <Text style={styles.historyValue}>{item.value} kg</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.quickActions}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.quickButton}
+            onPress={() => abrirTreino(recentWorkouts[0])}
+          >
+            <Ionicons name="play-outline" size={22} color={COLORS.primary} />
+            <Text style={styles.quickText}>Iniciar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.quickButton}
+            onPress={() => router.push('/explore' as any)}
+          >
+            <Ionicons name="barbell-outline" size={22} color={COLORS.blue} />
+            <Text style={styles.quickText}>Treinos</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.quickButton}
+            onPress={() => Alert.alert('Progresso', `Peso atual: ${ultimoPeso}`)}
+          >
+            <Ionicons name="analytics-outline" size={22} color={COLORS.orange} />
+            <Text style={styles.quickText}>Progresso</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.grid}>
           {summary.map((item) => (
             <View key={item.label} style={styles.metricCard}>
-              <View style={[styles.metricIcon, { backgroundColor: `${item.color}22` }]}>
-                <Ionicons
-                  name={item.icon as keyof typeof Ionicons.glyphMap}
-                  size={22}
-                  color={item.color}
-                />
+              <View style={[styles.metricIcon, { backgroundColor: `${item.color}20` }]}>
+                <Ionicons name={item.icon} size={22} color={item.color} />
               </View>
 
               <Text style={styles.metricValue}>{item.value}</Text>
@@ -135,34 +263,47 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Historico recente</Text>
-          <Text style={styles.sectionAction}>Ver todos</Text>
+          <Text style={styles.sectionTitle}>Treinos recentes</Text>
+
+          <TouchableOpacity onPress={() => router.push('/explore' as any)}>
+            <Text style={styles.sectionAction}>Ver todos</Text>
+          </TouchableOpacity>
         </View>
 
         {recentWorkouts.map((workout) => (
-          <View key={workout.name} style={styles.workoutCard}>
+          <TouchableOpacity
+            activeOpacity={0.82}
+            key={workout.name}
+            style={styles.workoutCard}
+            onPress={() => abrirTreino(workout)}
+          >
             <View style={styles.workoutIcon}>
-              <Ionicons name="barbell-outline" size={22} color={COLORS.primary} />
+              <Ionicons name="fitness-outline" size={22} color={COLORS.primary} />
             </View>
 
             <View style={styles.workoutInfo}>
               <Text style={styles.workoutName}>{workout.name}</Text>
               <Text style={styles.workoutDetails}>
-                {workout.exercises} • {workout.time}
+                {workout.exercises.length} exercicios • {workout.time}
               </Text>
             </View>
 
-            <Text style={styles.workoutDate}>{workout.date}</Text>
-          </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={styles.workoutDate}>{workout.date}</Text>
+              <Ionicons name="chevron-forward" size={18} color={COLORS.muted} />
+            </View>
+          </TouchableOpacity>
         ))}
 
         <View style={styles.progressCard}>
-          <View>
+          <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Evolucao semanal</Text>
-            <Text style={styles.progressText}>
-              Voce treinou 5 de 6 dias planejados.
-            </Text>
+            <Ionicons name="trending-up" size={22} color={COLORS.primary} />
           </View>
+
+          <Text style={styles.progressText}>
+            Voce treinou 5 de 6 dias planejados.
+          </Text>
 
           <View style={styles.progressBarBackground}>
             <View style={styles.progressBarFill} />
@@ -226,7 +367,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: 28,
     padding: 20,
-    marginBottom: 18,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -244,7 +385,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: COLORS.text,
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '900',
   },
   heroText: {
@@ -252,7 +393,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginTop: 8,
-    maxWidth: 230,
   },
   heroIcon: {
     width: 64,
@@ -262,19 +402,82 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryButton: {
+  inputRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
     height: 52,
-    borderRadius: 18,
+    borderRadius: 16,
+    backgroundColor: COLORS.cardSoft,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    color: COLORS.text,
+    paddingHorizontal: 15,
+    fontSize: 15,
+  },
+  saveSmallButton: {
+    height: 52,
+    paddingHorizontal: 18,
+    borderRadius: 16,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 8,
   },
-  primaryButtonText: {
+  saveSmallButtonText: {
     color: '#06111f',
-    fontSize: 16,
     fontWeight: '900',
+    fontSize: 15,
+  },
+  historyBox: {
+    backgroundColor: COLORS.cardSoft,
+    borderRadius: 18,
+    padding: 14,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  historyTitle: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '900',
+    marginBottom: 10,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 5,
+  },
+  historyDate: {
+    color: COLORS.muted,
+    fontSize: 13,
+  },
+  historyValue: {
+    color: COLORS.primary,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 18,
+  },
+  quickButton: {
+    flex: 1,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 20,
+    paddingVertical: 14,
+    alignItems: 'center',
+    gap: 7,
+  },
+  quickText: {
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: '800',
+    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',
@@ -318,7 +521,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
   },
   sectionTitle: {
     color: COLORS.text,
@@ -334,7 +536,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: 22,
     padding: 15,
-    marginBottom: 12,
+    marginTop: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     flexDirection: 'row',
@@ -366,12 +568,13 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontSize: 12,
     fontWeight: '800',
+    marginBottom: 4,
   },
   progressCard: {
     backgroundColor: COLORS.cardSoft,
     borderRadius: 24,
     padding: 18,
-    marginTop: 10,
+    marginTop: 22,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
