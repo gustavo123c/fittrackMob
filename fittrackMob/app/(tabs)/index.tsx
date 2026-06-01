@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -101,7 +101,7 @@ export default function HomeScreen() {
       );
       setWorkouts(workoutData ? JSON.parse(workoutData) : []);
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel carregar os dados.');
+      Alert.alert('Erro', 'Não foi possível carregar os dados.');
     }
   }
 
@@ -109,7 +109,7 @@ export default function HomeScreen() {
     const value = parseNumber(weightInput);
 
     if (!value || value <= 0) {
-      Alert.alert('Peso invalido', 'Digite um peso valido. Exemplo: 103.5');
+      Alert.alert('Peso inválido', 'Digite um peso válido. Exemplo: 103.5');
       return;
     }
 
@@ -126,7 +126,7 @@ export default function HomeScreen() {
       setWeightInput('');
       Alert.alert('Peso salvo', `Peso de ${formatNumber(value)} kg registrado.`);
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel salvar o peso.');
+      Alert.alert('Erro', 'Não foi possível salvar o peso.');
     }
   }
 
@@ -158,11 +158,11 @@ export default function HomeScreen() {
             <Text style={styles.eyebrow}>FitTrack Pro</Text>
 
             <Text style={styles.title}>
-              {profile.name ? `Ola, ${profile.name}` : 'Bem-vindo'}
+              {profile.name ? `Olá, ${profile.name}` : 'Bem-vindo'}
             </Text>
 
             <Text style={styles.subtitle}>
-              Registre seu peso, crie treinos, anote series e acompanhe sua evolucao.
+              Registre seu peso, crie treinos, anote séries e acompanhe sua evolução.
             </Text>
           </View>
 
@@ -186,7 +186,7 @@ export default function HomeScreen() {
 
               <Text style={styles.cardText}>
                 {previousWeight
-                  ? `Mudanca: ${weightChange > 0 ? '+' : ''}${formatNumber(
+                  ? `Mudança: ${weightChange > 0 ? '+' : ''}${formatNumber(
                       weightChange
                     )} kg`
                   : 'Digite seu peso atual para iniciar o acompanhamento.'}
@@ -240,7 +240,7 @@ export default function HomeScreen() {
                 : '--'}
             </Text>
             <Text style={styles.metricTitle}>Meta</Text>
-            <Text style={styles.metricDesc}>distancia</Text>
+            <Text style={styles.metricDesc}>distância</Text>
           </View>
 
           <View style={styles.metricCard}>
@@ -257,7 +257,7 @@ export default function HomeScreen() {
             <Text style={styles.metricValue}>
               {lastWorkout ? `${Math.round(lastWorkout.totalVolume)} kg` : '--'}
             </Text>
-            <Text style={styles.metricTitle}>Ultimo treino</Text>
+            <Text style={styles.metricTitle}>Último treino</Text>
             <Text style={styles.metricDesc}>volume</Text>
           </View>
         </View>
@@ -287,7 +287,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/progress' as any)}
           >
             <Ionicons name="analytics-outline" size={22} color={COLORS.orange} />
-            <Text style={styles.actionText}>Graficos</Text>
+            <Text style={styles.actionText}>Gráficos</Text>
           </TouchableOpacity>
         </View>
 
@@ -296,10 +296,10 @@ export default function HomeScreen() {
 
           <Text style={styles.cardText}>
             {workouts.length > 0
-              ? `Voce possui ${workouts.length} treinos salvos e ${Math.round(
+              ? `Você possui ${workouts.length} treinos salvos e ${Math.round(
                   totalVolume
                 )} kg de volume acumulado.`
-              : 'Crie ou abra um treino, registre carga e repeticoes por serie e salve para ver os graficos.'}
+              : 'Crie ou abra um treino, registre carga e repetições por série e salve para ver os gráficos.'}
           </Text>
         </View>
       </ScrollView>

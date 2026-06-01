@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -40,7 +40,7 @@ export default function CreateWorkoutScreen() {
   const router = useRouter();
 
   const [title, setTitle] = useState('');
-  const [level, setLevel] = useState('Intermediario');
+  const [level, setLevel] = useState('Intermediário');
   const [time, setTime] = useState('60 min');
   const [exerciseText, setExerciseText] = useState('');
 
@@ -51,19 +51,19 @@ export default function CreateWorkoutScreen() {
       .filter(Boolean);
 
     if (!title.trim()) {
-      Alert.alert('Nome invalido', 'Digite o nome do treino.');
+      Alert.alert('Nome inválido', 'Digite o nome do treino.');
       return;
     }
 
     if (exercises.length === 0) {
-      Alert.alert('Exercicios invalidos', 'Digite pelo menos um exercicio.');
+      Alert.alert('Exercícios inválidos', 'Digite pelo menos um exercício.');
       return;
     }
 
     const newWorkout: WorkoutPlan = {
       id: String(Date.now()),
       title: title.trim(),
-      level: level.trim() || 'Intermediario',
+      level: level.trim() || 'Intermediário',
       time: time.trim() || '60 min',
       exercises,
       custom: true,
@@ -79,7 +79,7 @@ export default function CreateWorkoutScreen() {
       Alert.alert('Treino criado', 'Seu treino personalizado foi salvo.');
       router.replace('/explore' as any);
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel salvar o treino.');
+      Alert.alert('Erro', 'Não foi possível salvar o treino.');
     }
   }
 
@@ -120,11 +120,11 @@ export default function CreateWorkoutScreen() {
               style={styles.input}
             />
 
-            <Text style={styles.label}>Nivel</Text>
+            <Text style={styles.label}>Nível</Text>
             <TextInput
               value={level}
               onChangeText={setLevel}
-              placeholder="Ex: Intermediario"
+              placeholder="Ex: Intermediário"
               placeholderTextColor={COLORS.muted}
               style={styles.input}
             />
@@ -138,8 +138,8 @@ export default function CreateWorkoutScreen() {
               style={styles.input}
             />
 
-            <Text style={styles.label}>Exercicios</Text>
-            <Text style={styles.help}>Digite um exercicio por linha.</Text>
+            <Text style={styles.label}>Exercícios</Text>
+            <Text style={styles.help}>Digite um exercício por linha.</Text>
 
             <TextInput
               value={exerciseText}

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -96,7 +96,7 @@ export default function ProgressScreen() {
       setProfile(profileData ? { ...DEFAULT_PROFILE, ...JSON.parse(profileData) } : DEFAULT_PROFILE);
       setWorkouts(workoutData ? JSON.parse(workoutData) : []);
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel carregar o progresso.');
+      Alert.alert('Erro', 'Não foi possível carregar o progresso.');
     }
   }
 
@@ -136,7 +136,7 @@ export default function ProgressScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.eyebrow}>Graficos</Text>
+            <Text style={styles.eyebrow}>Gráficos</Text>
             <Text style={styles.title}>Progresso</Text>
             <Text style={styles.subtitle}>
               Veja a melhora do peso corporal e das cargas dos treinos.
@@ -178,7 +178,7 @@ export default function ProgressScreen() {
             </View>
 
             <View style={styles.infoMini}>
-              <Text style={styles.infoLabel}>Mudanca</Text>
+              <Text style={styles.infoLabel}>Mudança</Text>
               <Text style={styles.infoValue}>
                 {previousWeight
                   ? `${weightChange > 0 ? '+' : ''}${formatNumber(weightChange)} kg`
@@ -187,7 +187,7 @@ export default function ProgressScreen() {
             </View>
 
             <View style={styles.infoMini}>
-              <Text style={styles.infoLabel}>Distancia</Text>
+              <Text style={styles.infoLabel}>Distância</Text>
               <Text style={styles.infoValue}>
                 {currentWeight && goalWeight
                   ? `${goalDistance > 0 ? '+' : ''}${formatNumber(goalDistance)} kg`
@@ -208,7 +208,7 @@ export default function ProgressScreen() {
             <Text style={styles.metricValue}>
               {lastVolume ? `${Math.round(lastVolume)} kg` : '--'}
             </Text>
-            <Text style={styles.metricTitle}>Ultimo treino</Text>
+            <Text style={styles.metricTitle}>Último treino</Text>
           </View>
 
           <View style={styles.metricCard}>
@@ -233,12 +233,12 @@ export default function ProgressScreen() {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Grafico do peso corporal</Text>
+        <Text style={styles.sectionTitle}>Gráfico do peso corporal</Text>
 
         <View style={styles.chartCard}>
           {weightChart.length === 0 ? (
             <Text style={styles.emptyText}>
-              Nenhum peso registrado. Va para Inicio e salve seu peso atual.
+              Nenhum peso registrado. Vá para Início e salve seu peso atual.
             </Text>
           ) : (
             weightChart.map((item, index) => (
@@ -256,12 +256,12 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Grafico das cargas dos treinos</Text>
+        <Text style={styles.sectionTitle}>Gráfico das cargas dos treinos</Text>
 
         <View style={styles.chartCard}>
           {workoutChart.length === 0 ? (
             <Text style={styles.emptyText}>
-              Nenhum treino salvo. Abra um treino, registre as series e salve.
+              Nenhum treino salvo. Abra um treino, registre as séries e salve.
             </Text>
           ) : (
             workoutChart.map((item) => (
@@ -284,7 +284,7 @@ export default function ProgressScreen() {
         <View style={styles.infoCard}>
           <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} />
           <Text style={styles.infoText}>
-            O grafico de cargas usa o volume do treino: soma de carga x repeticoes em todas as series.
+            O gráfico de cargas usa o volume do treino: soma de carga x repetições em todas as séries.
           </Text>
         </View>
       </ScrollView>

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -64,7 +64,7 @@ function getBmiStatus(bmi: number) {
     return {
       label: 'Abaixo do peso',
       color: COLORS.blue,
-      message: 'Seu IMC esta abaixo da faixa considerada normal.',
+      message: 'Seu IMC está abaixo da faixa considerada normal.',
     };
   }
 
@@ -72,7 +72,7 @@ function getBmiStatus(bmi: number) {
     return {
       label: 'Peso normal',
       color: COLORS.primary,
-      message: 'Seu IMC esta dentro da faixa considerada normal.',
+      message: 'Seu IMC está dentro da faixa considerada normal.',
     };
   }
 
@@ -80,14 +80,14 @@ function getBmiStatus(bmi: number) {
     return {
       label: 'Sobrepeso',
       color: COLORS.orange,
-      message: 'Seu IMC esta acima da faixa considerada normal.',
+      message: 'Seu IMC está acima da faixa considerada normal.',
     };
   }
 
   return {
     label: 'IMC alto',
     color: COLORS.red,
-    message: 'Seu IMC esta alto. Use isso como alerta geral de acompanhamento.',
+    message: 'Seu IMC está alto. Use isso como alerta geral de acompanhamento.',
   };
 }
 
@@ -121,7 +121,7 @@ export default function ProfileScreen() {
         setCurrentWeight(0);
       }
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel carregar seu perfil.');
+      Alert.alert('Erro', 'Não foi possível carregar seu perfil.');
     }
   }
 
@@ -138,22 +138,22 @@ export default function ProfileScreen() {
     const goalWeight = parseNumber(profile.goalWeight);
 
     if (!profile.name.trim()) {
-      Alert.alert('Nome invalido', 'Digite seu nome.');
+      Alert.alert('Nome inválido', 'Digite seu nome.');
       return;
     }
 
     if (!age || age <= 0) {
-      Alert.alert('Idade invalida', 'Digite uma idade valida.');
+      Alert.alert('Idade inválida', 'Digite uma idade válida.');
       return;
     }
 
     if (!height || height <= 0) {
-      Alert.alert('Altura invalida', 'Digite sua altura em metros. Exemplo: 1.83');
+      Alert.alert('Altura inválida', 'Digite sua altura em metros. Exemplo: 1.83');
       return;
     }
 
     if (!goalWeight || goalWeight <= 0) {
-      Alert.alert('Meta invalida', 'Digite uma meta de peso valida.');
+      Alert.alert('Meta inválida', 'Digite uma meta de peso válida.');
       return;
     }
 
@@ -161,7 +161,7 @@ export default function ProfileScreen() {
       await AsyncStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(profile));
       Alert.alert('Perfil salvo', 'Seus dados foram atualizados.');
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel salvar seu perfil.');
+      Alert.alert('Erro', 'Não foi possível salvar seu perfil.');
     }
   }
 
@@ -190,7 +190,7 @@ export default function ProfileScreen() {
 
               Alert.alert('Dados limpos', 'O app foi resetado neste aparelho.');
             } catch {
-              Alert.alert('Erro', 'Nao foi possivel limpar os dados.');
+              Alert.alert('Erro', 'Não foi possível limpar os dados.');
             }
           },
         },
@@ -229,7 +229,7 @@ export default function ProfileScreen() {
             </View>
 
             <Text style={styles.profileName}>
-              {profile.name || 'Novo usuario'}
+              {profile.name || 'Novo usuário'}
             </Text>
 
             <Text style={styles.profileInfo}>
@@ -244,7 +244,7 @@ export default function ProfileScreen() {
               </Text>
 
               <Text style={[styles.statusText, { color: status?.color ?? COLORS.muted }]}>
-                {status?.label ?? 'Registre seu peso na tela Inicio'}
+                {status?.label ?? 'Registre seu peso na tela Início'}
               </Text>
 
               <Text style={styles.statusMessage}>
@@ -311,7 +311,7 @@ export default function ProfileScreen() {
 
             <Text style={styles.infoText}>
               Os dados ficam salvos apenas neste aparelho. Quando outra pessoa abrir
-              em outro celular, ela vai preencher os proprios dados.
+              em outro celular, ela vai preencher os próprios dados.
             </Text>
           </View>
 

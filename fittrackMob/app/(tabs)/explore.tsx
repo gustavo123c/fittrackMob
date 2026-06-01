@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -38,21 +38,21 @@ const DEFAULT_WORKOUTS: WorkoutPlan[] = [
   {
     id: 'default-1',
     title: 'Peito, Ombro e Triceps',
-    level: 'Intermediario',
+    level: 'Intermediário',
     time: '58 min',
-    exercises: ['Supino reto', 'Supino inclinado', 'Desenvolvimento', 'Triceps corda'],
+    exercises: ['Supino reto', 'Supino inclinado', 'Desenvolvimento', 'Tríceps corda'],
   },
   {
     id: 'default-2',
     title: 'Costas e Biceps',
-    level: 'Intermediario',
+    level: 'Intermediário',
     time: '1h 05min',
     exercises: ['Puxada alta', 'Remada baixa', 'Remada curvada', 'Rosca direta'],
   },
   {
     id: 'default-3',
     title: 'Pernas Completo',
-    level: 'Avancado',
+    level: 'Avançado',
     time: '1h 15min',
     exercises: ['Agachamento', 'Leg press', 'Cadeira extensora', 'Mesa flexora'],
   },
@@ -73,7 +73,7 @@ export default function ExploreScreen() {
       const data = await AsyncStorage.getItem(CUSTOM_WORKOUTS_KEY);
       setCustomWorkouts(data ? JSON.parse(data) : []);
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel carregar seus treinos.');
+      Alert.alert('Erro', 'Não foi possível carregar seus treinos.');
     }
   }
 
@@ -89,7 +89,7 @@ export default function ExploreScreen() {
             await AsyncStorage.setItem(CUSTOM_WORKOUTS_KEY, JSON.stringify(updated));
             setCustomWorkouts(updated);
           } catch {
-            Alert.alert('Erro', 'Nao foi possivel apagar o treino.');
+            Alert.alert('Erro', 'Não foi possível apagar o treino.');
           }
         },
       },
@@ -149,7 +149,7 @@ export default function ExploreScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.workoutTitle}>{workout.title}</Text>
                 <Text style={styles.workoutMeta}>
-                  {workout.level} • {workout.time} • {workout.exercises.length} exercicios
+                  {workout.level} • {workout.time} • {workout.exercises.length} exercícios
                 </Text>
               </View>
 

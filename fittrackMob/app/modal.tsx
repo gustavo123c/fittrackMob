@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -74,7 +74,7 @@ export default function ModalScreen() {
 
   const title = params.title ?? 'Treino';
   const time = params.time ?? '60 min';
-  const level = params.level ?? 'Intermediario';
+  const level = params.level ?? 'Intermediário';
 
   const exercises = params.exercises
     ? params.exercises.split(',').map((item) => item.trim()).filter(Boolean)
@@ -99,7 +99,7 @@ export default function ModalScreen() {
         setLogs({});
       }
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel carregar o treino.');
+      Alert.alert('Erro', 'Não foi possível carregar o treino.');
     }
   }
 
@@ -182,7 +182,7 @@ export default function ModalScreen() {
     if (totalVolume <= 0) {
       Alert.alert(
         'Treino vazio',
-        'Digite carga e repeticoes em pelo menos uma serie antes de salvar.'
+        'Digite carga e repetições em pelo menos uma série antes de salvar.'
       );
       return;
     }
@@ -218,7 +218,7 @@ export default function ModalScreen() {
         `Volume total registrado: ${Math.round(totalVolume)} kg.`
       );
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel salvar o treino.');
+      Alert.alert('Erro', 'Não foi possível salvar o treino.');
     }
   }
 
@@ -226,9 +226,9 @@ export default function ModalScreen() {
     try {
       await AsyncStorage.removeItem(storageKey);
       setLogs({});
-      Alert.alert('Limpo', 'As anotacoes desse treino foram apagadas.');
+      Alert.alert('Limpo', 'As anotações desse treino foram apagadas.');
     } catch {
-      Alert.alert('Erro', 'Nao foi possivel limpar o treino.');
+      Alert.alert('Erro', 'Não foi possível limpar o treino.');
     }
   }
 
@@ -268,7 +268,7 @@ export default function ModalScreen() {
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>Series do treino</Text>
+          <Text style={styles.sectionTitle}>Séries do treino</Text>
 
           {exercises.map((exercise, exerciseIndex) => {
             const sets = getSets(exercise);
@@ -294,7 +294,7 @@ export default function ModalScreen() {
 
                   return (
                     <View key={`${exercise}-${setIndex}`} style={styles.setCard}>
-                      <Text style={styles.setTitle}>Serie {setIndex + 1}</Text>
+                      <Text style={styles.setTitle}>Série {setIndex + 1}</Text>
 
                       <View style={styles.inputsRow}>
                         <View style={styles.inputGroup}>
@@ -354,7 +354,7 @@ export default function ModalScreen() {
           <View style={styles.infoCard}>
             <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} />
             <Text style={styles.infoText}>
-              Agora cada serie tem sua propria carga e repeticoes. O volume e a soma de carga x repeticoes de todas as series.
+              Agora cada série tem sua própria carga e repetições. O volume é a soma de carga x repetições de todas as séries.
             </Text>
           </View>
 
@@ -365,12 +365,12 @@ export default function ModalScreen() {
 
           <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/progress' as any)}>
             <Ionicons name="analytics-outline" size={18} color={COLORS.primary} />
-            <Text style={styles.secondaryButtonText}>Ver graficos</Text>
+            <Text style={styles.secondaryButtonText}>Ver gráficos</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.dangerButton} onPress={clearWorkout}>
             <Ionicons name="trash-outline" size={18} color={COLORS.orange} />
-            <Text style={styles.dangerButtonText}>Limpar anotacoes</Text>
+            <Text style={styles.dangerButtonText}>Limpar anotações</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
