@@ -68,6 +68,7 @@ function getBmiStatus(bmi: number) {
   if (bmi < 18.5) return { label: 'Abaixo', color: COLORS.blue };
   if (bmi < 25) return { label: 'Normal', color: COLORS.primary };
   if (bmi < 30) return { label: 'Sobrepeso', color: COLORS.orange };
+
   return { label: 'Alto', color: COLORS.red };
 }
 
@@ -94,11 +95,13 @@ export default function HomeScreen() {
       ]);
 
       setWeights(weightData ? JSON.parse(weightData) : []);
+
       setProfile(
         profileData
           ? { ...DEFAULT_PROFILE, ...JSON.parse(profileData) }
           : DEFAULT_PROFILE
       );
+
       setWorkouts(workoutData ? JSON.parse(workoutData) : []);
     } catch {
       Alert.alert('Erro', 'Não foi possível carregar os dados.');
@@ -122,8 +125,10 @@ export default function HomeScreen() {
 
     try {
       await AsyncStorage.setItem(STORAGE_WEIGHT_KEY, JSON.stringify(newHistory));
+
       setWeights(newHistory);
       setWeightInput('');
+
       Alert.alert('Peso salvo', `Peso de ${formatNumber(value)} kg registrado.`);
     } catch {
       Alert.alert('Erro', 'Não foi possível salvar o peso.');
@@ -162,7 +167,12 @@ export default function HomeScreen() {
             </Text>
 
             <Text style={styles.subtitle}>
-              Registre seu peso, crie treinos, anote séries e acompanhe sua evolução.
+              Registre seu peso, crie treinos, anote séries e acompanhe sua
+              evolução.
+            </Text>
+
+            <Text style={styles.motivationText}>
+              Pequenos avanços todos os dias geram grandes resultados.
             </Text>
           </View>
 
@@ -225,38 +235,56 @@ export default function HomeScreen() {
               size={24}
               color={bmiStatus?.color ?? COLORS.muted}
             />
-            <Text style={styles.metricValue}>{bmi ? formatNumber(bmi) : '--'}</Text>
+
+            <Text style={styles.metricValue}>
+              {bmi ? formatNumber(bmi) : '--'}
+            </Text>
+
             <Text style={styles.metricTitle}>IMC</Text>
-            <Text style={[styles.metricDesc, { color: bmiStatus?.color ?? COLORS.muted }]}>
+
+            <Text
+              style={[
+                styles.metricDesc,
+                { color: bmiStatus?.color ?? COLORS.muted },
+              ]}
+            >
               {bmiStatus?.label ?? 'Sem dados'}
             </Text>
           </View>
 
           <View style={styles.metricCard}>
             <Ionicons name="trophy-outline" size={24} color={COLORS.orange} />
+
             <Text style={styles.metricValue}>
               {currentWeight && goalWeight
-                ? `${goalDistance > 0 ? '+' : ''}${formatNumber(goalDistance)} kg`
+                ? `${goalDistance > 0 ? '+' : ''}${formatNumber(
+                    goalDistance
+                  )} kg`
                 : '--'}
             </Text>
+
             <Text style={styles.metricTitle}>Meta</Text>
             <Text style={styles.metricDesc}>distância</Text>
           </View>
 
           <View style={styles.metricCard}>
             <Ionicons name="barbell-outline" size={24} color={COLORS.blue} />
+
             <Text style={styles.metricValue}>
               {totalVolume ? `${Math.round(totalVolume)} kg` : '--'}
             </Text>
+
             <Text style={styles.metricTitle}>Volume</Text>
             <Text style={styles.metricDesc}>total salvo</Text>
           </View>
 
           <View style={styles.metricCard}>
             <Ionicons name="fitness-outline" size={24} color={COLORS.primary} />
+
             <Text style={styles.metricValue}>
               {lastWorkout ? `${Math.round(lastWorkout.totalVolume)} kg` : '--'}
             </Text>
+
             <Text style={styles.metricTitle}>Último treino</Text>
             <Text style={styles.metricDesc}>volume</Text>
           </View>
@@ -286,7 +314,11 @@ export default function HomeScreen() {
             activeOpacity={0.8}
             onPress={() => router.push('/progress' as any)}
           >
-            <Ionicons name="analytics-outline" size={22} color={COLORS.orange} />
+            <Ionicons
+              name="analytics-outline"
+              size={22}
+              color={COLORS.orange}
+            />
             <Text style={styles.actionText}>Gráficos</Text>
           </TouchableOpacity>
         </View>
@@ -312,18 +344,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   container: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 120,
     backgroundColor: COLORS.background,
   },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
     marginBottom: 22,
   },
+
   eyebrow: {
     color: COLORS.primary,
     fontSize: 13,
@@ -331,12 +366,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
+
   title: {
     color: COLORS.text,
     fontSize: 32,
     fontWeight: '900',
     marginTop: 4,
   },
+
   subtitle: {
     color: COLORS.muted,
     fontSize: 15,
@@ -344,6 +381,16 @@ const styles = StyleSheet.create({
     maxWidth: 310,
     marginTop: 6,
   },
+
+  motivationText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '800',
+    lineHeight: 20,
+    marginTop: 10,
+    maxWidth: 310,
+  },
+
   iconButton: {
     width: 46,
     height: 46,
@@ -354,6 +401,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   mainCard: {
     backgroundColor: COLORS.card,
     borderRadius: 26,
@@ -362,28 +410,33 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     marginBottom: 16,
   },
+
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
   },
+
   cardLabel: {
     color: COLORS.muted,
     fontSize: 13,
     fontWeight: '900',
   },
+
   bigValue: {
     color: COLORS.text,
     fontSize: 34,
     fontWeight: '900',
     marginTop: 4,
   },
+
   cardText: {
     color: COLORS.muted,
     fontSize: 14,
     lineHeight: 20,
     marginTop: 6,
   },
+
   bigIcon: {
     width: 64,
     height: 64,
@@ -392,11 +445,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   inputRow: {
     flexDirection: 'row',
     gap: 10,
     marginTop: 18,
   },
+
   input: {
     flex: 1,
     height: 52,
@@ -408,6 +463,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     fontSize: 15,
   },
+
   saveButton: {
     height: 52,
     paddingHorizontal: 18,
@@ -415,17 +471,20 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
   },
+
   saveButtonText: {
     color: '#06111f',
     fontWeight: '900',
     fontSize: 15,
   },
+
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
     marginBottom: 16,
   },
+
   metricCard: {
     width: '48%',
     backgroundColor: COLORS.card,
@@ -434,28 +493,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
+
   metricValue: {
     color: COLORS.text,
     fontSize: 22,
     fontWeight: '900',
     marginTop: 10,
   },
+
   metricTitle: {
     color: COLORS.text,
     fontSize: 14,
     fontWeight: '800',
     marginTop: 2,
   },
+
   metricDesc: {
     color: COLORS.muted,
     fontSize: 12,
     marginTop: 2,
   },
+
   actions: {
     flexDirection: 'row',
     gap: 10,
     marginBottom: 16,
   },
+
   actionButton: {
     flex: 1,
     backgroundColor: COLORS.card,
@@ -466,12 +530,14 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     gap: 6,
   },
+
   actionText: {
     color: COLORS.text,
     fontSize: 12,
     fontWeight: '900',
     textAlign: 'center',
   },
+
   sectionTitle: {
     color: COLORS.text,
     fontSize: 20,
