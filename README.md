@@ -176,7 +176,7 @@ Projeto desenvolvido para a disciplina de Desenvolvimento Mobile.
 * Gustavo Costa
 * Gerson Gomes
 * Arthur Couto
-* Pedro Garcia
+* Pedro  Garcia
 * Addson Gabriel
 
 ---
